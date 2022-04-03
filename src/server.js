@@ -1,6 +1,7 @@
 const Hapi = require('@hapi/hapi');
 const openMusic = require('./api/open-music/');
 const AlbumService = require('./api/services/inMemory/AlbumService');
+const AlbumValidator = require('./validator/open-music');
 
 const init = async () => {
   const albumService = new AlbumService();
@@ -19,6 +20,7 @@ const init = async () => {
     plugin: openMusic,
     options: {
       service: albumService,
+      validator: AlbumValidator,
     },
   });
 
