@@ -1,14 +1,18 @@
+require('dotenv').config();
+
 const Hapi = require('@hapi/hapi');
 const openMusic = require('./api/open-music/');
-const AlbumService = require('./api/services/inMemory/AlbumService');
-const AlbumValidator = require('./validator/open-music');
+const AlbumService = require('./services/inMemory/AlbumService');
+const SongService = require('./services/inMemory/SongService');
+const Validator = require('./validator/open-music');
 
 const init = async () => {
   const albumService = new AlbumService();
+  const songService = new SongService();
 
   const server = Hapi.server({
-    port: 5000,
-    host: process.env.NODE_ENV !== 'production' ? 'localhost' : '0.0.0.0',
+    port: process.env.PORT,
+    host: process.env.HOST,
     routes: {
       cors: {
         origin: ['*'],
@@ -19,8 +23,8 @@ const init = async () => {
   await server.register({
     plugin: openMusic,
     options: {
-      service: albumService,
-      validator: AlbumValidator,
+      service: [ albumService, songService ],
+      validator: Validator,
     },
   });
 

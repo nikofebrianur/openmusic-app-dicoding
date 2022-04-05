@@ -1,3 +1,5 @@
+const ClientError = require('../../../exceptions/ClientError');
+
 class AlbumHandler {
   constructor(service, validator) {
     this._service = service;
@@ -9,12 +11,12 @@ class AlbumHandler {
     this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
   }
 
-  postAlbumHandler(request, h) {
+  async postAlbumHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
 
       const { name, year } = request.payload;
-      const albumId = this._service.addAlbum({ name, year });
+      const albumId = await this._service.addAlbum({ name, year });
 
       const response = h.response({
         status: 'success',
@@ -26,21 +28,32 @@ class AlbumHandler {
       response.code(201);
       return response;
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
       const response = h.response({
-        status: 'fail',
-        message: error.message,
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
-      response.code(400);
+      response.code(500);
+      console.error(error);
       return response;
     }
   }
 
-  getAlbumByIdHandler() {
+  async getAlbumByIdHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
 
       const { id } = request.params;
-      const album = this._service.getAlbumById(id);
+      const album = await this._service.getAlbumById(id);
       return {
         status: 'success',
         data: {
@@ -48,55 +61,88 @@ class AlbumHandler {
         },
       }
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
       const response = h.response({
-        status: 'fail',
-        message: error.message,
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
-      response.code(404);
+      response.code(500);
+      console.error(error);
       return response;
     }
-
   }
 
-  putAlbumByIdHandler(request) {
+  async putAlbumByIdHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
 
       const { id } = request.params;
 
-      this._service.editAlbumById(id, request.payload);
+      await this._service.editAlbumById(id, request.payload);
 
       return {
         status: 'success',
         message: 'Album berhasil diperbarui',
       };
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: error.message,
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
       const response = h.response({
-        status: 'fail',
-        message: error.message,
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
-      response.code(404);
+      response.code(500);
+      console.error(error);
       return response;
     }
+
   }
 
-  deleteAlbumByIdHandler(request, h) {
+  async deleteAlbumByIdHandler(request, h) {
     try {
       this._validator.validateAlbumPayload(request.payload);
 
       const { id } = request.params;
-      this._service.deleteAlbumByIdHandler(id);
+      await this._service.deleteAlbumByIdHandler(id);
 
       return {
         status: 'success',
         message: 'Catatan berhasil dihapus',
       };
     } catch (error) {
+      if (error instanceof ClientError) {
+        const response = h.response({
+          status: 'fail',
+          message: 'Album gagal dihapus. Id tidak ditemukan',
+        });
+        response.code(error.statusCode);
+        return response;
+      }
+
+      // Server ERROR!
       const response = h.response({
-        status: 'fail',
-        message: 'Album gagal dihapus. Id tidak ditemukan',
+        status: 'error',
+        message: 'Maaf, terjadi kegagalan pada server kami.',
       });
-      response.code(404);
+      response.code(500);
+      console.error(error);
       return response;
     }
   }
