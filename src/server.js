@@ -1,10 +1,12 @@
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
-const openMusic = require('./api/open-music/');
+const albums = require('./api/open-music/albums/album');
+const songs = require('./api/open-music/songs/song');
 const AlbumService = require('./services/inMemory/AlbumService');
 const SongService = require('./services/inMemory/SongService');
-const Validator = require('./validator/open-music');
+const AlbumValidator = require('./validator/album');
+const SongValidator = require('./validator/album');
 
 const init = async () => {
   const albumService = new AlbumService();
@@ -20,13 +22,22 @@ const init = async () => {
     },
   });
 
-  await server.register({
-    plugin: openMusic,
-    options: {
-      service: [ albumService, songService ],
-      validator: Validator,
+  await server.register([
+    {
+      plugin: albums,
+      options: {
+        service: albumService,
+        validator: AlbumValidator,
+      },
     },
-  });
+    {
+      plugin: songs,
+      options: {
+        service: songService,
+        validator: SongValidator,
+      },
+    }
+  ]);
 
   await server.start();
   console.log(`Server berjalan pada ${server.info.uri}`);
