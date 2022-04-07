@@ -1,29 +1,29 @@
-const ClientError = require('../../../exceptions/ClientError');
+const ClientError = require('../../exceptions/ClientError');
+const songs = require('../songs');
 
-class SongHandler {
+class AlbumHandler {
   constructor(service, validator) {
     this._service = service;
     this._validator = validator;
 
-    this.postSongHandler = this.postSongHandler.bind(this);
-    this.getSongsHandler = this.getSongsHandler.bind(this);
-    this.getSongByIdHandler = this.getSongByIdHandler.bind(this);
-    this.putSongByIdHandler = this.putSongByIdHandler.bind(this);
-    this.deleteSongByIdHandler = this.deleteSongByIdHandler.bind(this)
+    this.postAlbumHandler = this.postAlbumHandler.bind(this);
+    this.getAlbumByIdHandler = this.getAlbumByIdHandler.bind(this);
+    this.putAlbumByIdHandler = this.putAlbumByIdHandler.bind(this);
+    this.deleteAlbumByIdHandler = this.deleteAlbumByIdHandler.bind(this)
   }
 
-  postSongHandler(request, h) {
+  async postAlbumHandler(request, h) {
     try {
-      this._validator.validateSongPayload(request.payload);
+      this._validator.validateAlbumPayload(request.payload);
 
       const { name, year } = request.payload;
-      const songId = this._service.addSong({ name, year });
+      const albumId = await this._service.addAlbum({ name, year });
 
       const response = h.response({
         status: 'success',
-        message: 'Lagu berhasil ditambahkan.',
+        message: 'Album berhasil ditambahkan.',
         data: {
-          songId,
+          albumId,
         },
       });
       response.code(201);
@@ -34,7 +34,7 @@ class SongHandler {
           status: 'fail',
           message: error.message,
         });
-        response.code(400);
+        response.code(error.statusCode);
         return response;
       }
 
@@ -49,26 +49,15 @@ class SongHandler {
     }
   }
 
-  getSongsHandler() {
-    const songs = this._service.getAllSongs();
-    return {
-      status: 'success',
-      data: {
-        songs,
-      },
-    };
-  }
-
-  getSongByIdHandler(request, h) {
+  async getAlbumByIdHandler(request, h) {
     try {
-      this._validator.validateSongPayload(request.payload);
-
       const { id } = request.params;
-      const song = this._service.getSongById(id);
+      const album = await this._service.getAlbumById(id);
+
       return {
         status: 'success',
         data: {
-          song,
+          album,
         },
       }
     } catch (error) {
@@ -92,21 +81,19 @@ class SongHandler {
     }
   }
 
-  putSongByIdHandler(request, h) {
+  async putAlbumByIdHandler(request, h) {
     try {
-      this._validator.validateSongPayload(request.payload);
-
+      this._validator.validateAlbumPayload(request.payload);
       const { id } = request.params;
 
-      this._service.editSongById(id, request.payload);
+      await this._service.editAlbumById(id, request.payload);
 
       return {
         status: 'success',
-        message: 'Lagu berhasil diperbarui',
+        message: 'Album berhasil diperbarui',
       };
     } catch (error) {
       if (error instanceof ClientError) {
-
         const response = h.response({
           status: 'fail',
           message: error.message,
@@ -124,25 +111,23 @@ class SongHandler {
       console.error(error);
       return response;
     }
+
   }
 
-  deleteSongByIdHandler(request, h) {
+  async deleteAlbumByIdHandler(request, h) {
     try {
-      this._validator.validateSongPayload(request.payload);
-
       const { id } = request.params;
-      this._service.deleteSongByIdHandler(id);
+      await this._service.deleteAlbumById(id);
 
       return {
         status: 'success',
-        message: 'Lagu berhasil dihapus',
+        message: 'Catatan berhasil dihapus',
       };
     } catch (error) {
       if (error instanceof ClientError) {
-
         const response = h.response({
           status: 'fail',
-          message: 'Lagu gagal dihapus. Id tidak ditemukan',
+          message: 'Album gagal dihapus. Id tidak ditemukan',
         });
         response.code(error.statusCode);
         return response;
@@ -160,4 +145,4 @@ class SongHandler {
   }
 }
 
-module.exports = SongHandler;
+module.exports = AlbumHandler;

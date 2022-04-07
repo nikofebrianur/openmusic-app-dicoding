@@ -16,7 +16,7 @@ class SongService {
             title, year, genre, performer, duration, albumId, id, createdAt, updatedAt,
         };
 
-        this._song.push(newAlbum);
+        this._song.push(newSong);
 
         const isSuccess = this._song.filter((song) => song.id).length > 0;
 
@@ -32,7 +32,7 @@ class SongService {
     }
 
     getSongById(id) {
-        const song = this._songs.filter((n) => n.id === id)[0];
+        const song = this._song.filter((s) => s.id === id)[0];
         if (!song) {
           throw new NotFoundError('Lagu tidak ditemukan');
         }
@@ -40,7 +40,7 @@ class SongService {
       }
 
       editSongById(id, { title, year, genre, performer, duration, albumId }) {
-        const index = this.song.findIndex((song) => song.id === id);
+        const index = this._song.findIndex((song) => song.id === id);
      
         if (index === -1) {
           throw new NotFoundError('Gagal memperbarui album. Id tidak ditemukan');
@@ -48,8 +48,8 @@ class SongService {
      
         const updatedAt = new Date().toISOString();
      
-        this.song[index] = {
-          ...this.song[index],
+        this._song[index] = {
+          ...this._song[index],
           title,
           year,
           genre,

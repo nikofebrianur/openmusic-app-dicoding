@@ -1,12 +1,12 @@
 require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
-const albums = require('./api/open-music/albums/album');
-const songs = require('./api/open-music/songs/song');
+const albums = require('./api/albums');
 const AlbumService = require('./services/inMemory/AlbumService');
+const songs = require('./api/songs');
 const SongService = require('./services/inMemory/SongService');
 const AlbumValidator = require('./validator/album');
-const SongValidator = require('./validator/album');
+const SongValidator = require('./validator/song');
 
 const init = async () => {
   const albumService = new AlbumService();
