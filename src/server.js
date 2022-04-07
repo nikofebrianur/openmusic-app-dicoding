@@ -2,9 +2,9 @@ require('dotenv').config();
 
 const Hapi = require('@hapi/hapi');
 const albums = require('./api/albums');
-const AlbumService = require('./services/inMemory/AlbumService');
+const AlbumService = require('./services/postgres/AlbumService');
 const songs = require('./api/songs');
-const SongService = require('./services/inMemory/SongService');
+const SongService = require('./services/postgres/SongService');
 const AlbumValidator = require('./validator/album');
 const SongValidator = require('./validator/song');
 
