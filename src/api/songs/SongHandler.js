@@ -49,7 +49,7 @@ class SongHandler {
     }
   }
 
-  async getSongsHandler() {
+  async getSongsHandler(request,h) {
     try {
       const { title, performer } = request.query;
       const songs = await this._service.getAllSongs();
@@ -59,7 +59,7 @@ class SongHandler {
       if (title && performer) {
         filteredSong = songs.filter(
           (song) => (song.title.toLowerCase().includes(title.toLowerCase())
-          && song.performer.toLowerCase().includes(performer.toLowerCase())),
+            && song.performer.toLowerCase().includes(performer.toLowerCase())),
         );
       } if (title) {
         filteredSong = songs.filter(
@@ -82,6 +82,7 @@ class SongHandler {
         },
       };
     } catch (error) {
+      console.log(error)
       if (error instanceof ClientError) {
         const response = h.response({
           status: 'fail',

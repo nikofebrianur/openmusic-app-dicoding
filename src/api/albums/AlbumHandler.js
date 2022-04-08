@@ -1,5 +1,4 @@
 const ClientError = require('../../exceptions/ClientError');
-const songs = require('../songs');
 
 class AlbumHandler {
   constructor(service, validator) {
@@ -53,11 +52,13 @@ class AlbumHandler {
     try {
       const { id } = request.params;
       const album = await this._service.getAlbumById(id);
-      const song =  await this._service.getSongsByAlbumId(id);
+      const songs =  await this._service.getSongsByAlbumId(id);
       return {
         status: 'success',
         data: {
-          album,
+          album: {
+            ...album, songs,
+          }
         },
       }
     } catch (error) {
