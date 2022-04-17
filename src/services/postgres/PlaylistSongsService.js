@@ -1,45 +1,51 @@
 const { Pool } = require('pg');
-const { nanoid } = require('nanoid');
 const InvariantError = require('../../exceptions/InvariantError');
-const NotFoundError = require('../../exceptions/NotFoundError');
 
 class PlaylistSongsService {
-    constructor() {
+    constructor(playlistsService) {
         this._pool = new Pool();
+        this._playlistsService = playlistsService;
     }
 
-    async addSongToPlaylist({ playlistId, songId }) {
-        const id = `playlistsong-${nanoid(16)}`;
+    async addSongToPlaylist(payload) {
+        const { playlistId, userId, songId } = payload;
+        await this._playlistsService.verifyPlaylistExist(playlistId);
+        await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
+
         const query = {
             text: 'INSERT INTO playlistsongs VALUES($1, $2, $3) RETURNING id',
-            values: [id, playlistId, songId],
+            values: [playlistId, userId, songId],
         };
 
         const result = await this._pool.query(query);
 
-        if (!result.rows[0].id) {
+        if (!result.rows.length) {
             throw new InvariantError('Lagu gagal ditambahkan ke playlist');
         }
 
         return result.rows[0].id;
     }
 
-    async getSongInPlaylist(playlistId) {
+    async getSongInPlaylist(playlistId, userId) {
+        await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
         const query = {
-            text: 'SELECT song.id, song.name, song.username FROM playlistsongs LEFT JOIN users ON song_id = song.id WHERE playlists.id = $1',
+            text: 'SELECT songs.id, songs.title, songs.performer FROM playlists INNER JOIN playlistsongs ON playlistsongs.playlist_id = playlists.id INNER JOIN songs ON songs.id = playlistsongs.song_id WHERE playlists.id = $1',
             values: [playlistId],
         };
         const result = await this._pool.query(query);
-        
-        if (!result.rows[0].id) {
-            throw new NotFoundError('Lagu tidak ditemukan di playlist');
+
+        if (!result.rows) {
+            throw new InvariantError('Lagu tidak ditemukan di playlist');
         }
         return result.rows[0];
     }
 
-    async deleteSongInPlaylistById(playlistId, songId) {
+    async deleteSongInPlaylistById(playlistId, songId, userId) {
+        await this._playlistsService.verifyPlaylistExist(playlistId);
+        await this._playlistsService.verifyPlaylistAccess(playlistId, userId);
+
         const query = {
-            text: 'DELETE FROM playlistsongs WHERE playlist_id AND song_id = $2 = $1 RETURNING id',
+            text: 'DELETE FROM playlistsongs WHERE playlist_id = $1 AND song_id = $2 RETURNING id',
             values: [playlistId, songId],
         };
 

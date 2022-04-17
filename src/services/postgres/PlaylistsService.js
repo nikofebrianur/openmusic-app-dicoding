@@ -5,25 +5,22 @@ const NotFoundError = require('../../exceptions/NotFoundError');
 const AuthorizationError = require('../../exceptions/AuthorizationError');
 
 class PlaylistsService {
-    constructor(collaborationService) {
+    constructor() {
         this._pool = new Pool();
-        this._collaborationService = collaborationService;
     }
 
     async addPlaylistByOwner({ name, owner }) {
         const id = `playlist-${nanoid(16)}`;
-
         const query = {
             text: 'INSERT INTO playlists VALUES($1, $2, $3) RETURNING id',
             values: [id, name, owner],
         };
-
+        
         const result = await this._pool.query(query);
-
+        
         if (!result.rows[0].id) {
             throw new InvariantError('Playlist gagal ditambahkan');
         }
-
         return result.rows[0].id;
     }
 
@@ -81,6 +78,19 @@ class PlaylistsService {
             } catch {
                 throw error;
             }
+        }
+    }
+
+    async verifyPlaylistExist(playlistId) {
+        const query = {
+            text: 'SELECT COUNT(1) FROM playlists WHERE id = $1',
+            values: [playlistId],
+        };
+
+        const result = await this._pool.query(query);
+
+        if (!result) {
+            throw new NotFoundError('Playlist yang dicari tidak ditemukan');
         }
     }
 }

@@ -23,26 +23,26 @@ class SongService {
     }
 
     return result.rows[0].id;
-}
-
-async getAllSongs() {
-  const result = await this._pool.query('SELECT * FROM songs');
-  return result.rows;
-}
-
-async getSongById(id) {
-  const query = {
-    text: 'SELECT * FROM songs WHERE id = $1',
-    values: [id],
-  };
-
-  const result = await this._pool.query(query);
-
-  if (!result.rows.length) {
-    throw new NotFoundError('Lagu tidak ditemukan');
   }
 
-  return result.rows[0];
+  async getAllSongs() {
+    const result = await this._pool.query('SELECT * FROM songs');
+    return result.rows;
+  }
+
+  async getSongById(id) {
+    const query = {
+      text: 'SELECT * FROM songs WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result.rows.length) {
+      throw new NotFoundError('Lagu tidak ditemukan');
+    }
+
+    return result.rows[0];
   }
 
   async editSongById(id, { title, year, genre, performer, duration, albumId }) {
@@ -68,6 +68,19 @@ async getSongById(id) {
 
     if (!result.rows.length) {
       throw new NotFoundError('Gagal menghapus lagi. Id tidak ditemukan');
+    }
+  }
+
+  async verifySongExist(id) {
+    const query = {
+      text: 'SELECT COUNT(1) FROM songs WHERE id = $1',
+      values: [id],
+    };
+
+    const result = await this._pool.query(query);
+
+    if (!result) {
+      throw new NotFoundError('Lagu yang Anda cari tidak ditemukan');
     }
   }
 }
